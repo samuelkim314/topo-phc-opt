@@ -4,10 +4,10 @@
 
 using MPBUtils
 using Printf
-include("../write_ctl.jl")
-include("../topology.jl")
-include("../bands.jl")
-include("../process_symeigs.jl")
+include("../src/write_ctl.jl")
+include("../src/topology.jl")
+include("../src/bands.jl")
+include("../src/process_symeigs.jl")
 
 # sgnum = parse(Int64, ARGS[1])
 sgnum = 168     # 75 or 168

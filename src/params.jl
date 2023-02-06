@@ -93,8 +93,11 @@ function params2basis(params::Vector, sgnum::Integer, Dᵛ::Val{D}=Val(3);
             β = params[3] * (αβγhigh - °(90)) + °(90)
         elseif system == "triclinic"    # no conditions (free: a,b,c,α,β,γ)
             a = 1.0;
-            U = _Uniform(αβγlims...)
-            α, β, γ = rand(U), rand(U), rand(U)
+            b = params[1] * (abchigh - abclow) + abclow
+            c = params[2] * (abchigh - abclow) + abclow
+            α = params[3] * (αβγhigh - °(90)) + °(90)
+            β = params[4] * (αβγhigh - °(90)) + °(90)
+            γ = params[5] * (αβγhigh - °(90)) + °(90)
             throw("Triclinic basis not implemented")
         else 
             throw(DomainError(system))
@@ -141,7 +144,20 @@ function basis2params(Rs, sgnum::Integer, Dᵛ::Val{D}=Val(3);
             β = (β - °(90)) / (αβγhigh - °(90))
             return p2, p3, β
         elseif system == "triclinic"    # no conditions (free: a,b,c,α,β,γ)
+            R1 = Rs[1]
+            R2 = Rs[2]
+            R3 = Rs[3]
+            α = acos(dot(R2, R3) / (norm(R2) * norm(R3)))
+            β = acos(dot(R1, R3) / (norm(R1) * norm(R3)))
+            γ = acos(dot(R1, R2) / (norm(R1) * norm(R2)))
+            p1 = (norm(R1) - abclow) / (abchigh - abclow)
+            p2 = (norm(R2) - abclow) / (abchigh - abclow)
+            p3 = (norm(R3) - abclow) / (abchigh - abclow)
+            α = (α - °(90)) / (αβγhigh - °(90))
+            β = (β - °(90)) / (αβγhigh - °(90))
+            γ = (γ - °(90)) / (αβγhigh - °(90))
             throw("Triclinic basis not implemented")
+            return p1, p2, p3, α, β, γ
         else 
             throw(DomainError(system))
         end        

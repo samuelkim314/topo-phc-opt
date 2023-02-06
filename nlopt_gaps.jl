@@ -1,12 +1,12 @@
 # Optimize any gap with non-trivial bands below.
 using Printf
-include("write_ctl.jl")
-include("bands.jl")
-include("process_symeigs.jl")
-include("topology.jl")
-include("params.jl")
-include("opt_utils.jl")
-include("random.jl")
+include("src/write_ctl.jl")
+include("src/bands.jl")
+include("src/process_symeigs.jl")
+include("src/topology.jl")
+include("src/params.jl")
+include("src/opt_utils.jl")
+include("src/random.jl")
 using Crystalline
 using LinearAlgebra
 

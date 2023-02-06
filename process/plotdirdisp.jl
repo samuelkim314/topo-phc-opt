@@ -4,9 +4,9 @@
 
 using MPBUtils
 using Printf
-include("../write_ctl.jl")
-include("../topology.jl")
-include("../bands.jl")
+include("../src/write_ctl.jl")
+include("../src/topology.jl")
+include("../src/bands.jl")
 using PlotlyJS
 
 sgnum = 13

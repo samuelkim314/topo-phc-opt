@@ -22,7 +22,7 @@
 ;                a multiplet,
 ;             3. Facilitate basic printing of output and input parameters
 
-(include "aux.scm")
+(include "aux-func.scm")
 (include "berry-shared.scm")
 
 (define (berry-phase k-list bands-list)

@@ -1,12 +1,12 @@
 # Local bandgap optimization of Gamma-enforced (filling-enforced) gap
 using Printf
-include("write_ctl.jl")
-include("bands.jl")
-include("process_symeigs.jl")
-include("topology.jl")
-include("params.jl")
-include("opt_utils.jl")
-include("random.jl")
+include("src/write_ctl.jl")
+include("src/bands.jl")
+include("src/process_symeigs.jl")
+include("src/topology.jl")
+include("src/params.jl")
+include("src/opt_utils.jl")
+include("src/random.jl")
 using Crystalline
 using LinearAlgebra
 
@@ -58,7 +58,7 @@ globalid = global_best_ids[id]
 
 # Create directories for saving input/output/log files
 tmpdir = haskey(ENV, "TMPDIR")
-sub_dir = "sg$sgnum-dim3-n$(@sprintf("%.2f", nin))/filling/local-$trial-$globalid"
+sub_dir = "sg$sgnum-dim3-n$(@sprintf("%.2f", nin))/filling/local2-$trial-$globalid"
 in_dir, out_dir, log_dir, in_dir_full, out_dir_full, out_dir_best_full = makedirs(sub_dir, tmpdir)
 
 

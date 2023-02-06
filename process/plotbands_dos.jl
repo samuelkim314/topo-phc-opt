@@ -1,7 +1,7 @@
 using MPBUtils, Crystalline, PlotlyJS
 using Printf, DelimitedFiles
-include("../bands.jl")
-include("../write_ctl.jl")
+include("../src/bands.jl")
+include("../src/write_ctl.jl")
 
 # sgnum = 81
 # D = 3

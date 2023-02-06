@@ -3,11 +3,11 @@ Process NLopt results for optimizing bandgap.
 =#
 using MPBUtils
 using DelimitedFiles
-include("../bands.jl")
+include("../src/bands.jl")
 using FileIO
 using Printf
-include("../topology.jl")
-include("../process_symeigs.jl")
+include("../src/topology.jl")
+include("../src/process_symeigs.jl")
 
 sgnum = parse(Int64, ARGS[1])
 

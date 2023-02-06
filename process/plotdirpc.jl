@@ -3,7 +3,7 @@
 # e.g. using process_nlopt_gap.jl
 using MPBUtils
 using Printf
-include("../write_ctl.jl")
+include("../src/write_ctl.jl")
 using PyPlot # This is required for mesh_3d_levelsetlattice
 using Crystalline
 using GLMakie

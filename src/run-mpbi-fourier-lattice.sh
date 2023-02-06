@@ -21,7 +21,7 @@ IFS=$'\n';
 # run mpbi-mpi with inputs command-substituted from input/{$calcname}.sh
 # possible extra-opts for mpirun: --report-bindings --map-by core --bind-to core
 mpirun  \
-    mpb-mpi $(cat input/${calcname}.sh) \
+    mpbi-mpi $(cat input/${calcname}.sh) \
     ctl/fourier-lattice.ctl 2>&1 | tee logs/${logname}.log
 # restore the value of IFS
 unset IFS;
@@ -31,7 +31,7 @@ runtype=$(grep "run-type=" input/${calcname}.sh | sed 's/run-type=//;s/\"//g') #
 res=$(grep "res=" input/${calcname}.sh | sed 's/res=//') # get resolution
 
 # process and tidy up results
-. fix-unitcell.sh $calcname $runtype $res
-cat logs/${logname}.log | . get-freqs.sh $runtype ${logname}-dispersion.out
-cat logs/${logname}.log | . get-symeigs.sh ${logname}-symeigs.out
-. get-berry-phases.sh ${logname}
+. src/fix-unitcell.sh $calcname $runtype $res
+cat logs/${logname}.log | . src/get-freqs.sh $runtype ${logname}-dispersion.out
+cat logs/${logname}.log | . src/get-symeigs.sh ${logname}-symeigs.out
+. src/get-berry-phases.sh ${logname}

@@ -372,9 +372,9 @@ function run_mpb_sym(symcalcname::String, write_ctl_fun!::Function, topofun::Fun
 
             # Run MPB
             if tmpdir
-                run(`./run-fourier-lattice-sc.sh $symcalcname`)
+                run(`./src/run-fourier-lattice-sc.sh $symcalcname`)
             else
-                run(`./run-fourier-lattice.sh $symcalcname`)
+                run(`./src/run-fourier-lattice.sh $symcalcname`)
             end
 
             # Calculate topological index
@@ -427,16 +427,16 @@ function run_mpb(shcalcname::String, writectlfun!::Function, objectivefun::Funct
 
                 if hasinv
                     if tmpdir
-                        run(`./run-mpbi-fourier-lattice-sc.sh $shcalcname`)
+                        run(`./src/run-mpbi-fourier-lattice-sc.sh $shcalcname`)
                     else
-                        run(`./run-mpbi-fourier-lattice.sh $shcalcname`)
+                        run(`./src/run-mpbi-fourier-lattice.sh $shcalcname`)
                     end
                 else
                     # time = @elapsed run(`./run-mpb-fourier-lattice-sc.sh $shcalcname`)
                     if tmpdir
-                        run(`./run-mpb-fourier-lattice-sc.sh $shcalcname`)
+                        run(`./src/run-mpb-fourier-lattice-sc.sh $shcalcname`)
                     else
-                        run(`./run-mpb-fourier-lattice.sh $shcalcname`)
+                        run(`./src/run-mpb-fourier-lattice.sh $shcalcname`)
                     end
                 end
 
@@ -448,7 +448,8 @@ function run_mpb(shcalcname::String, writectlfun!::Function, objectivefun::Funct
         catch e
             # These are list of errors usually associated with SuperCloud acting up.
             # Other errors we will throw.
-            if e == ErrorException("at row 0, column 0 : ArgumentError(\"number of rows in dims must be > 0, got 0\")")
+            if e == ErrorException("at row 0, column 0 : ArgumentError(\"number of rows in dims must be > 0, got 0\")") ||
+                isa(e, MethodError)
                 println(e)
                 @error "Something went wrong" exception=(e, catch_backtrace())
             else

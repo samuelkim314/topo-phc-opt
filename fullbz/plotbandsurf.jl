@@ -1,4 +1,4 @@
-include("../bands.jl")
+include("../src/bands.jl")
 using PlotlyJS
 
 

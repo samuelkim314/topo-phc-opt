@@ -82,6 +82,13 @@ Alternatively, if you wish to keep all the files in a run (e.g., for detailed po
 be sure to comment out the code at the top of the script that re-defines the directories `in_dir`, `out_dir`, and
 `log_dir`. The script will save the best results to a new directory with the suffix `-best`.
 
+### Bash scripts
+
+Due to the nature of the MPB Scheme interface (see above section), the Julia code calls various Bash scripts that in turn start MPB. 
+These scripts are found in the `src/` directory with the `.sh` extension. 
+Some of the lines in these scripts were written for our specific server (i.e. Supercloud) so yo u may need to adjust these for your own use.
+Also note you may need to change the permissions to make the files executable, i.e. through `chmod`.
+
 ### Variable structure
 
 The PhC is parameterized by `x` (and initialized by `x0`) which is a continuous vector, with length depending on the
@@ -219,6 +226,10 @@ Though in principle, this probably can be automated as well.
 Finally, `plotdata.m` is a simple script to quickly plot the DOS.
 
 ## FAQ
+
+### Installing MPB
+
+Note that MPB must be built from [source](https://github.com/NanoComp/mpb) for this project. While MPB in general is available through commonly available tools (e.g. `apt-get`, `conda`), these do not contain the latest version of MPB, which incorporates the tools for analyzing symmetry eigenvalues.
 
 ### Other systems
 
