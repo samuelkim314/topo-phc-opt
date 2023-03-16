@@ -10,6 +10,7 @@ using Crystalline: label, formatirreplabel, symvec2string
 
 """
 Calculate band summaries with topological properties.
+See https://github.com/thchr/MPBUtils.jl for more information.
 """
 function calcbandsummaries(sgnum, calcname::String; dir::String="output/", timereversal=true)
     D = 3

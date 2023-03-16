@@ -326,6 +326,86 @@ lattice_from_mpbparams_trsb(filepath::String) = open(filepath) do io; lattice_fr
 
 
 """
+Variant of `prepare_mpbcalc!` except for explicity geometry parameters, rather than a level-set parameterization
+"""
+function prepare_mpbcalc_geom!(
+        io::IO,
+        sgnum::Integer,
+        Rs::AbstractVector{<:AbstractVector},
+        εin1::Real=10.0, εin2::Real=10.0, εout::Real=1.0,
+        mat1ff::Real=0.5, hole_r::Real=0.1,
+        runtype::String="all";
+        # kwargs
+        id=1,
+        res::Integer=32,
+        kvs::Union{Nothing, AbstractString, AbstractVector{<:AbstractVector{<:Real}}}=nothing,
+        lgs::Union{Nothing, AbstractVector{LittleGroup{D}}}=nothing,
+        nbands::Union{Nothing, Integer}=nothing,
+        # TODO: remove below kwarg (here for deprecation of `kvecs` -> `kvs` kwarg)
+        kvecs::Union{Nothing, AbstractString, AbstractVector{<:AbstractVector{<:Real}}}=nothing,
+    ) where D
+
+    (kvs === nothing && kvecs !== nothing) && (kvs = kvecs) # TODO: remove with `kvecs` kwarg
+
+    # --- prep work to actually call mpb ---
+    calcname = mpb_calcname(D, sgnum, id, res, runtype)
+    rvecs = _vec2list(_vec2vector3, Rs)
+
+    # prepare and write all runtype, structural, and identifying inputs
+    print(io, # run-type ("all", "te", or "tm")
+        "run-type", "=",  "\"", runtype,  "\"",  "\n",
+        # dimension, space group, and resolution
+        "dim",      "=",        D,               "\n",
+        "sgnum",    "=",        sgnum,           "\n",
+        "res",      "=",        res,             "\n",
+        # crystal (basis vectors)
+        "rvecs",    "=",        rvecs,           "\n",
+        # geometry parameters
+        "mat1ff", "=",        mat1ff,        "\n",
+        "hole-r", "=",        hole_r,        "\n",
+        # permittivities
+        "epsin1",    "=",        εin1,             "\n",
+        "epsin2",    "=",        εin2,             "\n",
+        "epsout",   "=",        εout,            "\n")
+
+    if calcname !== nothing && !isempty(calcname)
+        println(io, "prefix", "=", "\"", calcname, "\"")
+    end
+
+    if nbands !== nothing # number of bands to solve for (otherwise default to .ctl choice)
+        println(io, "nbands", "=", nbands)
+    end
+
+    # prepare and write k-vecs and possibly also little group operations
+    if lgs !== nothing
+        # if `lgs` is supplied, we interpret it as a request to do symmetry eigenvalue
+        # calculations at requested little group k-points
+        kvs !== nothing && throw(ArgumentError("One of `kvs` or `lgs` must be nothing"))
+        kvs = write_lgs_to_mpb!(io, lgs)
+        println(io)
+    end
+
+    # write `kvs` (if they are not nothing; we may not always want to give `kvs` explicitly,
+    #              e.g. for berry phase calculations)
+    write(io, "kvecs", "=")
+    if kvs !== nothing 
+        if kvs isa AbstractString
+            write(io, "\"", kvs, "\"")
+        elseif kvs isa AbstractVector{<:AbstractVector{<:Real}}
+            _vec2list(io, _vec2vector3, kvs)
+        else
+            error("incompatible type for `kvs` ($(typeof(kvs)))")
+        end
+    else
+        # easier just to write an empty string than nothing; otherwise we have to bother
+        # with figuring out how to remove an empty newline at the end of the file
+        write(io, "(list)")
+    end
+
+    return nothing
+end
+
+"""
 Calculate symmetry eigenvalues and topological index using MPB. Includes workarounds for random Supercloud errors.
 
 # Arguments

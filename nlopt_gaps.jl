@@ -83,5 +83,5 @@ function f(x::Vector, grad::Vector, opt_id::Integer)
 end
 
 # Perform optimization
-tracker = globalopt(f, x0, nlatticeparams, nflatparams, hasinv, 5000,
+tracker = globalopt_levelset(f, x0, nlatticeparams, nflatparams, hasinv, 5000,
     in_dir_full, out_dir_full, out_dir_best_full)

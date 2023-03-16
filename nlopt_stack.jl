@@ -13,7 +13,8 @@ using LinearAlgebra
 id = parse(Int64, ARGS[1])
 sgnum = parse(Int64, ARGS[2])
 
-nin = 4
+epsin1 = 11.68  # silicon
+epsin2 = 3.9    # silica
 D = 3
 res = 16
 nbands = 8
@@ -23,32 +24,42 @@ objective = calccompletebandgap
 
 # Create directories for saving input/output/log files
 tmpdir = haskey(ENV, "TMPDIR")
-sub_dir = "sg$sgnum-dim3-n$(@sprintf("%.2f", nin))/filling/global-$id"
+sub_dir = "sg$sgnum-dim2/filling/global-$id"
 in_dir, out_dir, log_dir, in_dir_full, out_dir_full, out_dir_best_full = makedirs(sub_dir, tmpdir)
 
 
 # Other parameters
-mu1 = minconnectivity(sgnum)
-cntr = centering(sgnum, D) # centering symbol (e.g, 'F' for face-centered, etc.)
+mu1 = 2     # Band index above which to maximize bandgap
+cntr = centering(sgnum, D-1) # centering symbol (e.g, 'F' for face-centered, etc.)
 # Has inversion symmetry or not
-hasinv = SymOperation{3}("-x,-y,-z") in spacegroup(sgnum, D).operations
-epsin = nin^2
+hasinv = SymOperation{3}("-x,-y,-z") in spacegroup(sgnum, D-1).operations
 epsout = 1.0
 runtype = "all" # we don't have TE/TM in 3D; do all polarizations
 
-x0, nlatticeparams, nflatparams = randinit(sgnum, D, hasinv; cntr=cntr)
+ngeomparams = 2
+
+nlengthparams, nangleparams = nbasisparams(sgnum, Val(D-1))     # Wallpaper group
+nlatticeparams = nlengthparams + nangleparams + 1   # Add one for c
+x0 = rand(ngeomparams + nlatticeparams)
 
 
 function f(x::Vector, grad::Vector, opt_id::Integer)
     # Extract lattice/geometry parameters
-    ff, pRs, flat_temp = params2flat(x, sgnum; 
-        cntr=cntr, hasinv=hasinv, abclow=0.75, abchigh=1.25)
-    Rs = conventionalize(pRs, cntr)
+    basisparams = x[1:nlatticeparams-1]
+    c = x[nlatticeparams]
+    geomparams = x[nlatticeparams+1:end]
+    Rs = params2basis(basisparams, sgnum, Val(D-1); abclow=0.75, abchigh=1.25)
+    pRs = primitivize(Rs, cntr)
+    Rs3D = extrudebasis(Rs, c)
+    pRs3D = primitivize(Rs3D, cntr)
+
+    # TODO: unnormalize the geometry parameters
 
     # Symmetry calculations using MPB
     symcalcname = joinpath(sub_dir, "$opt_id-sym")
     band_topo = run_mpb_sym(symcalcname,
-            (io;kwargs...)->prepare_mpbcalc!(io, sgnum, flat_temp, pRs, ff, epsin, epsout, runtype;
+            (io;kwargs...)->prepare_mpbcalc_geom!(io, sgnum, pRs3D, epsin1, epsin2, epsout, 
+                geomparams[1], geomparams[2], runtype;
                 res=res, nbands=nbands, kwargs...),
             ()->calcbandtopo(sgnum, symcalcname, dir=out_dir),
             true;
@@ -67,8 +78,9 @@ function f(x::Vector, grad::Vector, opt_id::Integer)
         shcalcname = joinpath(sub_dir, calcname)
 
         bandgap = run_mpb(shcalcname,
-                        io->prepare_mpbcalc!(io, sgnum, flat_temp, pRs, ff, epsin, epsout, runtype;
-                                res=res, kvs=k_interp, id=id, nbands=nbands),
+                        io->prepare_mpbcalc_geom!(io, sgnum, pRs3D, epsin1, epsin2, epsout, 
+                            geomparams[1], geomparams[2], runtype;
+                            res=res, kvs=k_interp, id=id, nbands=nbands),
                         ()->objective(joinpath(sub_dir, calcname), mu1, dir=out_dir);
                         hasinv=hasinv,
                         dir=in_dir,
@@ -85,5 +97,5 @@ function f(x::Vector, grad::Vector, opt_id::Integer)
 end
 
 # Perform optimization
-tracker = globalopt_levelset(f, x0, nlatticeparams, nflatparams, hasinv, 5000,
+tracker = globalopt(f, x0, 5000,
     in_dir_full, out_dir_full, out_dir_best_full)

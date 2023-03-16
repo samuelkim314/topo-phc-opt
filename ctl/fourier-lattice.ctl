@@ -18,7 +18,8 @@
 ; ──────────────────────────── GEOMETRY & PREP-WORK ────────────────────────────
 ; create geometry from level-set function defined in this .ctl file: expects
 ; params 'rvecs', 'uc-gvecs', 'uc-coefs', 'uc-level', 'epsin', & 'epsout'
-(include "level-set-fourier-lattice.scm")
+; (include "level-set-fourier-lattice.scm")
+(include "stackholes.scm")
 
 ; define file-name prefix for *.h5 output files
 (set! filename-prefix (string-append prefix "-"))

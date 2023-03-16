@@ -12,7 +12,7 @@ using MPBUtils
 """
 Get the number of free parameters for the basis lattice vectors for a given space group
 """
-function nbasisparams(sgnum::Integer, Dᵛ::Val{D}=Val(3);) where D
+function nbasisparams(sgnum::Integer, ::Val{D}=Val(3);) where D
     system = crystalsystem(sgnum, D)
     if D == 1
         return 0, 0
@@ -57,7 +57,7 @@ Generate basis lattice vectors from the free parameters.
 
 Note that if the lattice is cubic, params will be ignored.
 """
-function params2basis(params::Vector, sgnum::Integer, Dᵛ::Val{D}=Val(3);
+function params2basis(params::Vector, sgnum::Integer, ::Val{D}=Val(3);
             abclow=0.5, abchigh=2.0) where D
     system = crystalsystem(sgnum, D)
     αβγlow = °(30)
@@ -65,7 +65,24 @@ function params2basis(params::Vector, sgnum::Integer, Dᵛ::Val{D}=Val(3);
     if D == 1
         return 0, 0
     elseif D == 2
-        throw("2D basis not implemented")
+        if     system == "square"      # a=b & γ=90° (free: a)
+            a = b = 1.0;
+            γ = °(90)
+        elseif system == "rectangular" # γ=90° (free: a,b)
+            a = 1.0
+            b = params[1] * (abchigh - abclow) + abclow
+            γ = °(90)
+        elseif system == "hexagonal"   # a=b & γ=120° (free: a)
+            a = b = 1.0;
+            γ = °(120)
+        elseif system == "oblique"     # no conditions (free: a,b,γ)
+            a = 1.0
+            b = params[1] * (abchigh - abclow) + abclow
+            γ = params[2] * (αβγhigh - αβγlow) + αβγlow
+        else 
+            throw(DomainError(system))
+        end
+        return crystal(a,b,γ)
 
     elseif D == 3
         if system == "cubic"        # a=b=c & α=β=γ=90° (free: a)
@@ -119,9 +136,24 @@ function basis2params(Rs, sgnum::Integer, Dᵛ::Val{D}=Val(3);
     αβγhigh = °(150)
     system = crystalsystem(sgnum, D)
     if D == 1
-        return 0, 0
+        throw("1D basis not implemented")
     elseif D == 2
-        throw("2D basis not implemented")
+        if     system == "square"      # a=b & γ=90° (free: a)
+            return nothing
+        elseif system == "rectangular" # γ=90° (free: a,b)
+            return [(Rs[2][2] - abclow) / (abchigh - abclow)]
+        elseif system == "hexagonal"   # a=b & γ=120° (free: a)
+            return nothing
+        elseif system == "oblique"     # no conditions (free: a,b,γ)
+            p1 = (Rs[2][2] - abclow) / (abchigh - abclow)
+            R1 = Rs[1]
+            R2 = Rs[2]
+            γ = acos(dot(R1, R2) / (norm(R1) * norm(R2)))
+            p2 = (γ - αβγlow) / (αβγhigh - αβγlow)
+            return p1, γ
+        else 
+            throw(DomainError(system))
+        end
 
     elseif D == 3
         if system == "cubic"        # a=b=c & α=β=γ=90° (free: a)
@@ -341,4 +373,25 @@ function randinit(sgnum::Integer, D::Integer=3, hasinv::Bool=true; cntr::Char=no
     end
 
     return x0, nlatticeparams, nflatparams
+end
+
+function extrudebasis(Rs, c)
+    system = crystalsystem(Rs)
+
+    if system == "square"      # a=b & γ=90° (free: a)
+        return crystal(1, 1, c, °(90), °(90), °(90))
+    elseif system == "rectangular" # γ=90° (free: a,b)
+        b = Rs[2][2]
+        return crystal(1, b, c, °(90), °(90), °(90))
+    elseif system == "hexagonal"   # a=b & γ=120° (free: a)
+        return crystal(1, 1, c, °(90), °(90), °(120))
+    elseif system == "oblique"     # no conditions (free: a,b,γ)
+        b = Rs[2][2]
+        R1 = Rs[1]
+        R2 = Rs[2]
+        γ = acos(dot(R1, R2) / (norm(R1) * norm(R2)))
+        return crystal(1, b, c, °(90), °(90), γ)
+    else 
+        throw(DomainError(system))
+    end
 end

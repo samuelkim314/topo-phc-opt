@@ -124,5 +124,5 @@ function f(x::Vector, grad::Vector, opt_id::Integer)
 end
 
 # Perform optimization!
-localopt(f, x0, nlatticeparams, nflatparams, hasinv, 
+localopt_levelset(f, x0, nlatticeparams, nflatparams, hasinv, 
     ncycles, iters_per_cycle, in_dir_full, out_dir_full, out_dir_best_full)
